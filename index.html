@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>灯泡点亮游戏</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            padding: 15px;
+            touch-action: manipulation;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .game-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .steps {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .steps span {
+            color: #e74c3c;
+            font-size: 1.2rem;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(to right, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+        }
+        
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .bulb {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            position: relative;
+            font-weight: bold;
+            font-size: 0.75rem;
+            user-select: none;
+        }
+        
+        .bulb.on {
+            background-color: #f1c40f;
+            box-shadow: 0 0 12px #f1c40f, 0 0 18px rgba(241, 196, 15, 0.6);
+            color: #2c3e50;
+        }
+        
+        .bulb.off {
+            background-color: #2c3e50;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .instructions {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem;
+        }
+        
+        .instructions h2 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+        
+        .instructions ul {
+            list-style-type: none;
+            padding-left: 15px;
+        }
+        
+        .instructions li {
+            margin-bottom: 6px;
+            color: #34495e;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .instructions li:before {
+            content: "•";
+            color: #3498db;
+            font-size: 1.2rem;
+            position: absolute;
+            left: 0;
+            top: -3px;
+        }
+        
+        .win-message {
+            display: none;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1rem;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        
+        /* 横屏适配 */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .container {
+                max-width: 90%;
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 10px;
+            }
+            
+            .game-info {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+                padding: 10px;
+            }
+            
+            .game-board {
+                gap: 4px;
+                margin-bottom: 15px;
+            }
+            
+            .bulb {
+                font-size: 0.65rem;
+            }
+            
+            .instructions {
+                display: none;
+            }
+        }
+        
+        /* 小屏幕手机适配 */
+        @media (max-width: 350px) {
+            .container {
+                padding: 12px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .bulb {
+                font-size: 0.65rem;
+            }
+            
+            button {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* 防止长按出现文本选择菜单 */
+        .bulb {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>灯泡点亮游戏</h1>
+        
+        <div class="game-info">
+            <div class="steps">步数: <span id="stepCount">0</span></div>
+            <button id="resetButton">重置游戏</button>
+        </div>
+        
+        <div class="game-board" id="gameBoard"></div>
+        
+        <div id="winMessage" class="win-message">
+            恭喜您赢了！所有灯泡都已点亮！
+        </div>
+        
+        <div class="instructions">
+            <h2>游戏规则</h2>
+            <ul>
+                <li>点击灯泡可以切换其状态（亮/灭）</li>
+                <li>点击一个灯泡也会切换其上下左右相邻灯泡的状态</li>
+                <li>目标是将所有灯泡都点亮</li>
+                <li>灯泡坐标第一位数字是列，第二位是行</li>
+                <li>初始亮起的灯泡已设置为特定模式</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // 游戏配置
+        const COLS = 8;  // 列数
+        const ROWS = 4;  // 行数
+        const INITIAL_LIT_BULBS = ['13', '14', '23', '32', '42', '43', '51', '53', '54', '61', '63', '64', '71', '74', '81', '82', '84'];
+        
+        // 游戏状态
+        let bulbs = [];
+        let steps = 0;
+        let gameSolved = false;
+        
+        // 初始化游戏
+        function initGame() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+            gameBoard.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
+            
+            bulbs = [];
+            
+            // 创建灯泡 - 注意：第一位是列，第二位是行
+            for (let row = 1; row <= ROWS; row++) {
+                for (let col = 1; col <= COLS; col++) {
+                    const bulbId = `${col}${row}`; // 第一位是列，第二位是行
+                    const isLit = INITIAL_LIT_BULBS.includes(bulbId);
+                    
+                    bulbs.push({
+                        id: bulbId,
+                        col: col,
+                        row: row,
+                        isLit: isLit
+                    });
+                    
+                    const bulbElement = document.createElement('div');
+                    bulbElement.className = `bulb ${isLit ? 'on' : 'off'}`;
+                    bulbElement.dataset.id = bulbId;
+                    bulbElement.dataset.col = col;
+                    bulbElement.dataset.row = row;
+                    bulbElement.textContent = bulbId;
+                    
+                    // 添加触摸事件
+                    bulbElement.addEventListener('click', () => toggleBulb(bulbId));
+                    bulbElement.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        bulbElement.style.transform = 'scale(0.95)';
+                    });
+                    bulbElement.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        bulbElement.style.transform = '';
+                        toggleBulb(bulbId);
+                    });
+                    
+                    gameBoard.appendChild(bulbElement);
+                }
+            }
+            
+            steps = 0;
+            gameSolved = false;
+            document.getElementById('stepCount').textContent = steps;
+            document.getElementById('winMessage').style.display = 'none';
+        }
+        
+        // 切换灯泡状态
+        function toggleBulb(bulbId) {
+            if (gameSolved) return;
+            
+            const bulbIndex = bulbs.findIndex(b => b.id === bulbId);
+            if (bulbIndex === -1) return;
+            
+            const bulb = bulbs[bulbIndex];
+            const col = parseInt(bulb.id[0]); // 第一位是列
+            const row = parseInt(bulb.id[1]); // 第二位是行
+            
+            // 切换当前灯泡
+            toggleSingleBulb(bulbId);
+            
+            // 切换相邻灯泡
+            if (col > 1) toggleSingleBulb(`${col-1}${row}`); // 左
+            if (col < COLS) toggleSingleBulb(`${col+1}${row}`); // 右
+            if (row > 1) toggleSingleBulb(`${col}${row-1}`); // 上
+            if (row < ROWS) toggleSingleBulb(`${col}${row+1}`); // 下
+            
+            steps++;
+            document.getElementById('stepCount').textContent = steps;
+            
+            checkWinCondition();
+        }
+        
+        // 切换单个灯泡状态
+        function toggleSingleBulb(bulbId) {
+            const bulbIndex = bulbs.findIndex(b => b.id === bulbId);
+            if (bulbIndex === -1) return;
+            
+            bulbs[bulbIndex].isLit = !bulbs[bulbIndex].isLit;
+            
+            const bulbElement = document.querySelector(`.bulb[data-id="${bulbId}"]`);
+            if (bulbElement) {
+                bulbElement.classList.toggle('on');
+                bulbElement.classList.toggle('off');
+            }
+        }
+        
+        // 检查是否获胜
+        function checkWinCondition() {
+            const allLit = bulbs.every(bulb => bulb.isLit);
+            
+            if (allLit) {
+                gameSolved = true;
+                document.getElementById('winMessage').style.display = 'block';
+            }
+        }
+        
+        // 事件监听
+        document.getElementById('resetButton').addEventListener('click', initGame);
+        document.getElementById('resetButton').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            initGame();
+        });
+        
+        // 防止页面滚动和缩放
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // 初始化游戏
+        initGame();
+    </script>
+</body>
+</html>
